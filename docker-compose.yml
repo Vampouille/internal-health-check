@@ -1,0 +1,28 @@
+version: '2'
+volumes:
+  ldap_data:
+  ldap_config:
+services:
+  healthcheck:
+    image: internal_healthchecks
+    build: ./
+    ports:
+      - 8080:80
+    environment:
+      - DEVELOPMENT=1
+      - OTHER_LOG_LEVEL=DEBUG
+      - LDAP_TEST_URL=ldap://cn=admin,dc=georchestra,dc=org:secret@ldap/uid=geoserver_privileged_user,ou=users,dc=georchestra,dc=org
+    volumes:
+      - ./:/app
+  ldap:
+    image: georchestra/ldap:latest
+    environment:
+      - SLAPD_ORGANISATION=georchestra
+      - SLAPD_DOMAIN=georchestra.org
+      - SLAPD_PASSWORD=secret
+      - SLAPD_ADDITIONAL_MODULES=groupofmembers
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap
+    ports:
+      - 3899:389
