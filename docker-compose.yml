@@ -2,6 +2,7 @@ version: '2'
 volumes:
   ldap_data:
   ldap_config:
+  postgresql_data:
 services:
   healthcheck:
     image: internal_healthchecks
@@ -12,6 +13,8 @@ services:
       - DEVELOPMENT=1
       - OTHER_LOG_LEVEL=DEBUG
       - LDAP_TEST_URL=ldap://cn=admin,dc=georchestra,dc=org:secret@ldap/uid=geoserver_privileged_user,ou=users,dc=georchestra,dc=org
+      - POSTGRES_CONNECTION_STRING=host=database port=5432 dbname=georchestra user=georchestra password=georchestra
+      - POSTGRES_TEST_QUERY=SELECT 1
     volumes:
       - ./:/app
   ldap:
@@ -26,3 +29,12 @@ services:
       - ldap_config:/etc/ldap
     ports:
       - 3899:389
+  database:
+    image: georchestra/database:latest
+    environment:
+      - POSTGRES_USER=georchestra
+      - POSTGRES_PASSWORD=georchestra
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    ports:
+      - 54322:5432
