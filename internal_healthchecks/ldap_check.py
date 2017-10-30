@@ -15,7 +15,7 @@ def check_ldap(_request):
     m = re.search('ldap://((.+):(.+)@)([^:]+)(:(\d+))?/([^,]+),(.+)',
                   test_string)
     if m is None:
-        raise Exception("Invalid LDAP configuration")
+        raise HTTPInternalServerError("Invalid LDAP configuration")
     user = m.group(2)
     password = m.group(3)
     server = m.group(4)
@@ -25,15 +25,20 @@ def check_ldap(_request):
         port = m.group(6)
     dn1 = m.group(7)
     dn2 = m.group(8)
-    print('User: %s, Pass: %s, Server: %s, Port: %s, DN1: %s DN2: %s' %
-          (user, password, server, port, dn1, dn2))
 
-    conn = ldap3.Connection(ldap3.Server(server,
-                                         port=port,
-                                         get_info=ldap3.ALL),
-                            user,
-                            password,
-                            auto_bind=True)
-    if not conn.search(dn2, '(%s)' % dn1):
-        raise HTTPInternalServerError(
-            'Cannot find %s in LDAP' % dn1)
+    try:
+        conn = ldap3.Connection(ldap3.Server(server,
+                                             port=port,
+                                             get_info=ldap3.ALL),
+                                user,
+                                password,
+                                auto_bind=True)
+    except Exception:
+        raise HTTPInternalServerError('Unable to connect LDAP')
+
+    try:
+        if not conn.search(dn2, '(%s)' % dn1):
+            raise HTTPInternalServerError(
+                'Cannot find %s in LDAP' % dn1)
+    except Exception:
+        raise HTTPInternalServerError('Unable to search in LDAP')

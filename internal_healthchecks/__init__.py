@@ -15,8 +15,8 @@ def main(_, **settings):
     config.scan("internal_healthchecks.services")
     health_check = HealthCheck(config)
     if os.getenv("LDAP_TEST_URL", None) is not None:
-        health_check.add_custom_check('check ldap', check_ldap, 2)
+        health_check.add_custom_check('check ldap', check_ldap)
     if os.getenv("POSTGRES_CONNECTION_STRING", None) is not None:
-        health_check.add_custom_check('check postgres', check_postgres, 2)
+        health_check.add_custom_check('check postgres', check_postgres)
 
     return config.make_wsgi_app()
